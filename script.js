@@ -1,58 +1,71 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/Addons.js';
 
-// Canvas
-const canvas = document.querySelector("canvas.webgl")
+// canvas
+const canvas  = document.querySelector('canvas.webgl');
 
 // Scene
 const scene = new THREE.Scene();
 
-// Objects (geometry, material, mesh)
-const geometry = new THREE.BoxGeometry(1, 1, 1);
+// objects
 
-// Material
-// Cuube
+const group = new THREE.Group();
 
-const material = new THREE.MeshBasicMaterial(
-    { color: "red" }
-);
-const mesh = new THREE.Mesh(geometry, material);
-mesh.position.set(0, 1, 0)
-scene.add(mesh);
+const box1 = new THREE.Mesh(
+  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshBasicMaterial({color: "orange"})
+)
+box1.position.set(0, 0, 0);
+group.add(box1);
+scene.add(group);
 
-// Line
-const lineMaterial = new THREE.LineBasicMaterial({color: 0x0000ff });
-const points = [];
-// points.push( new THREE.Vector3( - 10, 0, 0 ) );
-// points.push( new THREE.Vector3( 0, 10, 0 ) );
-// points.push( new THREE.Vector3( 10, 0, 0 ) );
-
-const lineGeometry = new THREE.BufferGeometry().setFromPoints( points );
-const line = new THREE.Line(lineGeometry, lineMaterial)
-line.position.set(0, 0, -1);
-scene.add(line)
-
-
-// Size
+// size
 const size = {
-    width: 800,
-    height: 600,
+  width: window.innerWidth,
+  height: window.innerHeight
 }
+
 // camera
-const camera = new THREE.PerspectiveCamera(90, size.width / size.height);
-camera.position.set(0, 0, 3);
-scene.add(camera)
+const camera = new THREE.PerspectiveCamera(75, size.width/size.height);
+camera.position.set(0, 0, 3)
+// scene.add(camera);
 
-// Renderer
-const renderer = new THREE.WebGLRenderer({canvas: canvas});
+// change camera view
+const control = new OrbitControls(camera, canvas);
+control.enableDamping = true;
+
+// renderer
+const renderer = new THREE.WebGLRenderer({canvas: canvas})
 renderer.setSize(size.width, size.height);
-// renderer.render(scene, camera)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+// Resize
+window.addEventListener('resize', (e)=> {
+  size.width = window.innerWidth;
+  size.height = window.innerHeight;
+  camera.aspect = size.width/size.height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(size.width, size.height);
+})
 
-function Animate(){
-    mesh.rotation.x += 0.01;
-    mesh.rotation.y += 0.01;
-    mesh.rotation.z += 0.0002;
-    renderer.render(scene, camera)
+// Fullscreen
+
+window.addEventListener('keydown', (event) => {
+  const keyPressed= event.key === 'f' || event.key === 'F';
+  if(keyPressed){
+    if(!document.fullscreenElement && keyPressed){
+      canvas.requestFullscreen();
+    }else{
+      document.exitFullscreen();
+    }  
+  }
+})
+
+const Animate = () => {
+  control.update();
+  renderer.render(scene, camera)
+  window.requestAnimationFrame(Animate);
 }
+Animate();
 
-renderer.setAnimationLoop(Animate);
+
